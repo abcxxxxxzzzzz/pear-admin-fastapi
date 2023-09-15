@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+     <meta charset="utf-8">
+		<title>用户管理</title>
+		<link rel="stylesheet" href="{{ url_for('static', path='/admin/component/pear/css/pear.css') }}" />
+
+
+        <style>
+            .show {
+                display: block;
+            }
+
+            .hidden {
+                display: none;
+            }
+        </style>
+
+</head>
+<body>
+<form class="layui-form">
+    <div class="mainBox">
+        <div class="main-container">
+            <div class="main-container">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">来源地址</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="name" lay-verify="required" autocomplete="off" placeholder="请输入来源域名"
+                               class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">跳转地址</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="redirect" lay-verify="required" autocomplete="off" placeholder="请输入以http或者https协议开头的地址"
+                               class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">归属类型</label>
+                    <div class="layui-input-block">
+                      <select name="parentId" lay-verify="required">
+                        <option value=""></option>
+                        {% for parent in parents %}
+                            <option value="{{ parent.id }}">{{parent.name}}</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                </div>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">开启SSL</label>
+                    <div class="layui-input-block">
+                        <input type="checkbox" name="ssl_enable" lay-skin="switch" lay-text="ON|OFF" lay-filter="user-switch">
+                    </div>
+                </div>
+
+                <div class="layui-form-item hidden" id="ssl-crt">
+                    <label class="layui-form-label">证书CRT</label>
+                    <div class="layui-input-block">
+                        <textarea name="ssl_crt" cols="30" rows="10" class="layui-textarea"></textarea>
+                    </div>
+                </div>
+
+                <div class="layui-form-item hidden"  id="ssl-key">
+                    <label class="layui-form-label">证书KEY</label>
+                    <div class="layui-input-block">
+                        <textarea name="ssl_key" cols="30" rows="10" class="layui-textarea"></textarea>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <div class="bottom">
+        <div class="button-container">
+            <button type="submit" class="pear-btn pear-btn-primary pear-btn-sm" lay-submit="" lay-filter="user-save">
+                <i class="layui-icon layui-icon-ok"></i>
+                提交
+            </button>
+            <button type="reset" class="pear-btn pear-btn-sm reset">
+                <i class="layui-icon layui-icon-refresh"></i>
+                重置
+            </button>
+        </div>
+    </div>
+</form>
+<script src="{{ url_for('static', path='/admin/component/layui/layui.js') }}"></script>
+<script src="{{ url_for('static', path='/admin/component/pear/pear.js') }}"></script>
+<script>
+    layui.use(['form', 'jquery'], function () {
+        let form = layui.form;
+        let $ = layui.jquery;
+        form.on('submit(user-save)', function (data) {
+            // let parentId = $('input[name=parentId]:selected').val()
+
+            // console.log(data.field.ssl_crt);
+            if (data.field.ssl_enable == 'on') {
+                if (data.field.ssl_crt == '' || data.field.ssl_key == ''){
+                    layer.msg('开启SSL, 请上传证书')
+                    return false
+                }
+                data.field.ssl_enable = 1
+                
+            } else {
+                data.field.ssl_enable = 0
+                data.field.ssl_crt == ''
+                data.field.ssl_key == ''
+            }
+
+            
+
+            $.ajax({
+                url: '/admin/http/save',
+                data: JSON.stringify(data.field),
+                dataType: 'json',
+                contentType: 'application/json',
+                type: 'post',
+                success: function (result) {
+                    if (result.success) {
+                        layer.msg(result.msg, {icon: 1, time: 1000}, function () {
+                            parent.layer.close(parent.layer.getFrameIndex(window.name));//关闭当前页
+                            parent.layui.table.reload("user-table");
+                        });
+                    } else {
+                        layer.msg(result.msg, {icon: 2, time: 1000});
+                    }
+                }
+            })
+            return false;
+        });
+
+
+        var isShow = false;
+        form.on('switch(user-switch)', function (data){
+
+            var a = document.getElementById('ssl-crt')
+            var b = document.getElementById('ssl-key')
+
+            if(isShow) {
+                a.className = 'hidden'
+                b.className = 'hidden'
+                isShow = false
+            } else {
+                a.className = 'show'
+                b.className = 'show'
+                isShow = true
+            }
+
+
+        });
+
+
+
+        $('.reset').click(function() {
+                var a = document.getElementById('ssl-crt')
+                var b = document.getElementById('ssl-key')
+                a.className = 'hidden'
+                b.className = 'hidden'
+                isShow = false;
+        })
+    })
+
+
+</script>
+<script>
+</script>
+</body>
+</html>

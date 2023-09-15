@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+		<title>用户管理</title>
+		<link rel="stylesheet" href="{{ url_for('static', path='/admin/component/pear/css/pear.css') }}" />
+</head>
+<body class="pear-container">
+<div class="layui-card">
+    <div class="layui-card-body">
+        <form class="layui-form" action="" lay-filter="user-query-form" id="user-query-form">
+                <div class="layui-form-item">
+                    <label class="layui-form-label">旧密码</label>
+                    <div class="layui-input-block">
+                        <input type="password" name="oldPasswd" required lay-verify="required" autocomplete="off" placeholder="请输入旧密码"
+                               class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">新密码</label>
+                    <div class="layui-input-block">
+                        <input type="password" name="newPasswd" required lay-verify="required" autocomplete="off" placeholder="请输入新密码"
+                               class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">重复密码</label>
+                    <div class="layui-input-block">
+                        <input type="password" name="restPasswd" required lay-verify="required" autocomplete="off" placeholder="请输入重复密码"
+                               class="layui-input">
+                    </div>
+                </div>
+
+                <div class="bottom" style="position: initial; background-color: #ffffff;">
+                    <div class="button-container">
+                        <button type="submit" class="pear-btn pear-btn-primary pear-btn-sm" lay-submit="" lay-filter="user-save">
+                            <i class="layui-icon layui-icon-ok"></i>
+                            提交
+                        </button>
+                        <button type="reset" class="pear-btn pear-btn-sm">
+                            <i class="layui-icon layui-icon-refresh"></i>
+                            重置
+                        </button>
+                    </div>
+                </div>
+        </form>
+    </div>
+</div>
+</body>
+
+
+
+
+<script src="{{ url_for('static', path='/admin/component/layui/layui.js') }}"></script>
+<script src="{{ url_for('static', path='/admin/component/pear/pear.js') }}"></script>
+<script>
+    layui.use(['form', 'jquery'], function () {
+        let form = layui.form;
+        let $ = layui.jquery;
+        form.on('submit(user-save)', function (data) {
+
+            if(data.field.newPasswd != data.field.restPasswd) {
+                layer.msg('新密码和重复密码不一致',{icon: 2, time: 1000})
+                return false;
+            }
+
+            $.ajax({
+                url: '/admin/user/passwd',
+                data: JSON.stringify(data.field),
+                dataType: 'json',
+                contentType: 'application/json',
+                type: 'post',
+                success: function (result) {
+                    if (result.success) {
+                        layer.msg(result.msg, {icon: 1, time: 1000});
+                        $('#user-query-form')[0].reset();
+                        layui.form.render()
+                    } else {
+                        layer.msg(result.msg, {icon: 2, time: 1000});
+                        $('#user-query-form')[0].reset();
+                        layui.form.render()
+                    }
+                }
+            })
+            return false;
+        });
+    })
+</script>
+
+</body>
+</html>
